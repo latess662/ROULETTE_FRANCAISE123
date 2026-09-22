@@ -1,0 +1,6 @@
+{
+  "name": "Roulette Predictor - Analyse & Statistiques",
+  "description": "Analyseur de probabilités, suivi des séries, calcul des écarts et prédictions pour la Roulette Française.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
