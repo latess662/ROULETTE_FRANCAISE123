@@ -366,11 +366,11 @@ export function StatsPanel({ stats }: StatsPanelProps) {
       {/* Tab 4: Précision de la Session */}
       {activeTab === 'precision' && (
         <div className="space-y-3">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
             <div className="p-3 rounded-xl bg-black/30 border border-emerald-800/40 text-center">
               <div className="text-[10px] text-emerald-400 uppercase font-semibold">Tours Analysés</div>
               <div className="text-2xl font-black text-white my-1">{stats.accuracy.totalChecked}</div>
-              <div className="text-[10px] text-emerald-300/60">Avec prédiction active</div>
+              <div className="text-[10px] text-emerald-300/60">Avec prédiction</div>
             </div>
 
             <div className="p-3 rounded-xl bg-black/30 border border-emerald-800/40 text-center">
@@ -380,14 +380,14 @@ export function StatsPanel({ stats }: StatsPanelProps) {
             </div>
 
             <div className="p-3 rounded-xl bg-black/30 border border-emerald-800/40 text-center">
-              <div className="text-[10px] text-emerald-400 uppercase font-semibold">Top 5 Couverture</div>
+              <div className="text-[10px] text-emerald-400 uppercase font-semibold">Couverture Clés</div>
               <div className="text-2xl font-black text-emerald-300 my-1">
                 {stats.accuracy.coverageHits}
                 <span className="text-xs text-emerald-400 font-normal">
                   {' '}({stats.accuracy.totalChecked > 0 ? ((stats.accuracy.coverageHits / stats.accuracy.totalChecked) * 100).toFixed(0) : 0}%)
                 </span>
               </div>
-              <div className="text-[10px] text-emerald-300/60">5 numéros clés</div>
+              <div className="text-[10px] text-emerald-300/60">Numéros clés</div>
             </div>
 
             <div className="p-3 rounded-xl bg-black/30 border border-emerald-800/40 text-center">
@@ -398,13 +398,24 @@ export function StatsPanel({ stats }: StatsPanelProps) {
                   {' '}({stats.accuracy.totalChecked > 0 ? ((stats.accuracy.sectorHits / stats.accuracy.totalChecked) * 100).toFixed(0) : 0}%)
                 </span>
               </div>
-              <div className="text-[10px] text-emerald-300/60">Voisins / Tiers / Orphelins</div>
+              <div className="text-[10px] text-emerald-300/60">Cylindre réel</div>
+            </div>
+
+            <div className="p-3 rounded-xl bg-emerald-950/50 border border-emerald-500/40 text-center col-span-2 sm:col-span-1">
+              <div className="text-[10px] text-emerald-300 uppercase font-bold">Double Douzaine</div>
+              <div className="text-2xl font-black text-emerald-200 my-1">
+                {stats.accuracy.doubleDozenHits}
+                <span className="text-xs text-emerald-300 font-normal">
+                  {' '}({stats.accuracy.totalChecked > 0 ? ((stats.accuracy.doubleDozenHits / stats.accuracy.totalChecked) * 100).toFixed(0) : 0}%)
+                </span>
+              </div>
+              <div className="text-[10px] text-emerald-400/80">Couverture 64.8%</div>
             </div>
           </div>
 
           <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-700/40 text-xs text-emerald-200">
-            <span className="font-bold text-amber-300">Mécanisme de validation : </span>
-            Chaque nouveau tour entré par l&apos;utilisateur est instantanément comparé aux recommandations générées lors du tour précédent.
+            <span className="font-bold text-amber-300">Loi du Tiers & Répétitions : </span>
+            Sur les {stats.totalSpins} tirages, {stats.uniqueNumbersDrawn} numéros distincts sont sortis dont {stats.repeatingNumbersCount} numéros répétiteurs (sortis 2 fois ou plus).
           </div>
         </div>
       )}

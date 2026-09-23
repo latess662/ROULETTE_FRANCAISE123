@@ -15,20 +15,22 @@ import {
   SpinRecord,
   generateRoulettePrediction,
   calculateRouletteStats,
-  PredictionResult
+  PredictionResult,
+  StrategyMode
 } from '@/lib/roulette-analyzer';
 import { ROULETTE_NUMBERS, RED_NUMBERS } from '@/lib/roulette-data';
 import { soundFx } from '@/lib/audio';
-import { Trophy, CheckCircle, Sparkles } from 'lucide-react';
+import { Trophy, CheckCircle, Sparkles, Shield, Info, HelpCircle } from 'lucide-react';
 
 const STORAGE_KEY = 'roulette_predictor_session_v1';
 
 export default function RoulettePredictorPage() {
   const [history, setHistory] = useState<SpinRecord[]>([]);
+  const [strategyMode, setStrategyMode] = useState<StrategyMode>('safe');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [toastNotification, setToastNotification] = useState<{
-    type: 'vip' | 'coverage' | 'color' | 'sector';
+    type: 'vip' | 'coverage' | 'color' | 'sector' | 'dozen';
     message: string;
     number: number;
   } | null>(null);
@@ -71,10 +73,10 @@ export default function RoulettePredictorPage() {
     return calculateRouletteStats(history);
   }, [history]);
 
-  // Current Prediction calculation for the next upcoming spin
+  // Current Prediction calculation for the next upcoming spin with active strategy
   const currentPrediction = useMemo(() => {
-    return generateRoulettePrediction(history);
-  }, [history]);
+    return generateRoulettePrediction(history, strategyMode);
+  }, [history, strategyMode]);
 
   // Last entered spin number
   const lastSpunNumber = history.length > 0 ? history[history.length - 1].number : undefined;
@@ -82,7 +84,7 @@ export default function RoulettePredictorPage() {
   // Accuracy percentage for the header
   const accuracyRate = useMemo(() => {
     if (stats.accuracy.totalChecked === 0) return 85.0;
-    const rate = ((stats.accuracy.coverageHits + stats.accuracy.sectorHits) / (stats.accuracy.totalChecked * 2)) * 100;
+    const rate = ((stats.accuracy.doubleDozenHits + stats.accuracy.coverageHits + stats.accuracy.sectorHits) / (stats.accuracy.totalChecked * 3)) * 100;
     return +rate.toFixed(1);
   }, [stats.accuracy]);
 
@@ -96,6 +98,7 @@ export default function RoulettePredictorPage() {
     const info = ROULETTE_NUMBERS[num];
     const wasColor = info.color === currentPrediction.suggestedColor;
     const wasSector = info.sector === currentPrediction.suggestedSector;
+    const wasDoubleDozen = info.dozen === currentPrediction.suggestedDozen || info.dozen === currentPrediction.secondaryDozen;
 
     if (wasVip) {
       soundFx.playWinChime();
@@ -110,17 +113,24 @@ export default function RoulettePredictorPage() {
       }
       setToastNotification({
         type: 'vip',
-        message: `🎯 TOUCHÉ VIP EXACT : Le n°${num} était le numéro mis en avant !`,
+        message: `🎯 TOUCHÉ VIP EXACT : Le n°${num} était le numéro mis en avant ! (Gain 35x)`,
+        number: num
+      });
+    } else if (wasDoubleDozen && strategyMode === 'safe') {
+      soundFx.playWinChime();
+      setToastNotification({
+        type: 'dozen',
+        message: `🛡️ DOUBLE DOUZAINE GAGNANTE : Gain sur la ${info.dozen}e Douzaine (Couverture 64.8% réussie) !`,
         number: num
       });
     } else if (wasCoverage) {
       soundFx.playWinChime();
       setToastNotification({
         type: 'coverage',
-        message: `★ COUVERTURE GAGNANTE : Le n°${num} figurait dans le Top 5 recommandé !`,
+        message: `★ COUVERTURE GAGNANTE : Le n°${num} figurait dans la sélection clé recommandée !`,
         number: num
       });
-    } else if (wasColor || wasSector) {
+    } else if (wasSector || wasColor) {
       soundFx.playPredictBeep();
       setToastNotification({
         type: wasSector ? 'sector' : 'color',
@@ -146,7 +156,7 @@ export default function RoulettePredictorPage() {
     };
 
     setHistory((prev) => [...prev, newRecord]);
-  }, [currentPrediction]);
+  }, [currentPrediction, strategyMode]);
 
   // Undo last spin
   const handleUndo = () => {
@@ -219,7 +229,36 @@ export default function RoulettePredictorPage() {
           stats={stats}
           onOpenQuickInput={() => setIsModalOpen(true)}
           lastEnteredSpin={lastSpunNumber}
+          strategyMode={strategyMode}
+          onChangeStrategyMode={setStrategyMode}
         />
+
+        {/* Strategic Guidance Box */}
+        <div className="p-3.5 rounded-xl bg-gradient-to-r from-emerald-950/80 via-[#062417] to-emerald-950/80 border border-emerald-700/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-start gap-2.5">
+            <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            <div>
+              <span className="font-bold text-amber-300">Guide de Réussite bet261 : </span>
+              {strategyMode === 'safe' ? (
+                <span className="text-emerald-200">
+                  En <strong>Mode Haute Réussite</strong>, vous couvrez 24 numéros sur 37 (<strong>64.8% de probabilité</strong>). Cela évite les mauvaises séries et assure des gains réguliers sur les Douzaines et Colonnes.
+                </span>
+              ) : strategyMode === 'balanced' ? (
+                <span className="text-emerald-200">
+                  En <strong>Mode Secteur Cylindre</strong>, vous jouez le groupe de numéros adjacents sur la roue (Voisins du Zéro = 45.9%, Tiers = 32.4%). C&apos;est la technique favorite des joueurs de roulette en direct.
+                </span>
+              ) : (
+                <span className="text-emerald-200">
+                  En <strong>Mode Sniper Plein</strong>, vous visez un gain direct de 35x. Comme 1 numéro a 2.7% de chance de sortir, jouez toujours le n°VIP avec les 6 numéros de couverture associés pour porter la couverture à 18.9%.
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0 text-[11px] text-amber-400 font-semibold px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30">
+            <Shield className="w-3.5 h-3.5" />
+            <span>Gestion Bankroll Active</span>
+          </div>
+        </div>
 
         {/* 3. Fast Input Bar for Real Results */}
         <QuickInputBar

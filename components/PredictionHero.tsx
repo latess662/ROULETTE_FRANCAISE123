@@ -1,9 +1,22 @@
 'use client';
 
 import React from 'react';
-import { PredictionResult, RouletteStats } from '@/lib/roulette-analyzer';
+import { PredictionResult, RouletteStats, StrategyMode } from '@/lib/roulette-analyzer';
 import { ROULETTE_NUMBERS, SECTOR_NAMES } from '@/lib/roulette-data';
-import { Sparkles, Target, Zap, Activity, CheckCircle2, ChevronRight, Layers, Compass } from 'lucide-react';
+import {
+  Sparkles,
+  Target,
+  Zap,
+  Activity,
+  CheckCircle2,
+  ChevronRight,
+  Layers,
+  Compass,
+  Shield,
+  Percent,
+  Coins,
+  AlertTriangle
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface PredictionHeroProps {
@@ -11,24 +24,20 @@ interface PredictionHeroProps {
   stats: RouletteStats;
   onOpenQuickInput: () => void;
   lastEnteredSpin?: number;
+  strategyMode: StrategyMode;
+  onChangeStrategyMode: (mode: StrategyMode) => void;
 }
 
 export function PredictionHero({
   prediction,
   stats,
   onOpenQuickInput,
-  lastEnteredSpin
+  lastEnteredSpin,
+  strategyMode,
+  onChangeStrategyMode
 }: PredictionHeroProps) {
   const vip = prediction.vipNumber;
   const vipInfo = ROULETTE_NUMBERS[vip];
-
-  // Couleur du numéro VIP
-  const getNumberColorClass = (num: number) => {
-    const info = ROULETTE_NUMBERS[num];
-    if (info.color === 'green') return 'bg-emerald-600 text-white border-emerald-400';
-    if (info.color === 'red') return 'bg-rose-700 text-white border-rose-400';
-    return 'bg-neutral-900 text-white border-neutral-700';
-  };
 
   return (
     <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-[#092e1e] via-[#062015] to-[#04160e] border border-amber-500/30 p-4 sm:p-6 shadow-2xl shadow-emerald-950/80">
@@ -36,28 +45,90 @@ export function PredictionHero({
       <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Top Banner */}
-      <div className="flex flex-wrap items-center justify-between gap-2 pb-4 mb-4 border-b border-emerald-800/40">
+      {/* Top Header: Title + Strategy Mode Selector */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-emerald-800/40">
         <div className="flex items-center gap-2">
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30">
             <Zap className="w-4 h-4 animate-pulse" />
           </div>
           <div>
             <div className="text-xs uppercase font-extrabold tracking-wider text-amber-400 flex items-center gap-1.5">
-              <span>PRÉDICTION DU PROCHAIN TOUR</span>
+              <span>PRÉDICTION ALGORITHMIQUE DU PROCHAIN TOUR</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
             </div>
             <p className="text-xs text-emerald-300/70">
-              Modélisation statistique de trajectoire & loi des écarts
+              Loi du tiers, dispersion angulaire & gestion des écarts
             </p>
           </div>
         </div>
 
-        {/* Confidence Gauge */}
-        <div className="flex items-center gap-2 bg-emerald-950/70 border border-amber-500/30 px-3 py-1.5 rounded-xl">
-          <Activity className="w-4 h-4 text-amber-400" />
+        {/* Strategy Mode Switcher */}
+        <div className="flex items-center gap-1 bg-black/50 p-1 rounded-xl border border-emerald-800/60 text-xs">
+          <button
+            onClick={() => onChangeStrategyMode('safe')}
+            className={`px-3 py-1.5 rounded-lg transition font-bold flex items-center gap-1.5 ${
+              strategyMode === 'safe'
+                ? 'bg-emerald-500 text-black shadow-md'
+                : 'text-emerald-300 hover:text-white'
+            }`}
+          >
+            <Shield className="w-3.5 h-3.5" />
+            <span>Haute Réussite (64.8%)</span>
+          </button>
+
+          <button
+            onClick={() => onChangeStrategyMode('balanced')}
+            className={`px-3 py-1.5 rounded-lg transition font-bold flex items-center gap-1.5 ${
+              strategyMode === 'balanced'
+                ? 'bg-amber-500 text-black shadow-md'
+                : 'text-emerald-300 hover:text-white'
+            }`}
+          >
+            <Compass className="w-3.5 h-3.5" />
+            <span>Secteur Cylindre</span>
+          </button>
+
+          <button
+            onClick={() => onChangeStrategyMode('sniper')}
+            className={`px-3 py-1.5 rounded-lg transition font-bold flex items-center gap-1.5 ${
+              strategyMode === 'sniper'
+                ? 'bg-rose-500 text-white shadow-md'
+                : 'text-emerald-300 hover:text-white'
+            }`}
+          >
+            <Target className="w-3.5 h-3.5" />
+            <span>Sniper Plein (35:1)</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Main Recommended Play Announcement Banner */}
+      <div className="mb-4 p-3.5 rounded-xl bg-gradient-to-r from-emerald-950 via-[#0a2f1e] to-emerald-950 border border-emerald-500/40 flex flex-wrap items-center justify-between gap-3 shadow-inner">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-amber-400 text-black font-black flex items-center justify-center text-xs shrink-0 shadow">
+            PARI
+          </div>
+          <div>
+            <div className="text-[10px] uppercase font-bold text-amber-400 tracking-wider">
+              Coup Optimal Recommandé ({prediction.strategyMode.toUpperCase()})
+            </div>
+            <div className="text-sm sm:text-base font-extrabold text-white">
+              {prediction.recommendedPlay}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 text-xs">
           <div className="text-right">
-            <div className="text-[10px] text-emerald-300 uppercase font-semibold">Indice de Fiabilité</div>
+            <div className="text-[10px] text-emerald-300 uppercase font-semibold">Couverture Réelle</div>
+            <div className="text-sm font-black text-emerald-400 flex items-center justify-end gap-1">
+              <Percent className="w-3.5 h-3.5" />
+              {prediction.realProbability.toFixed(1)}%
+            </div>
+          </div>
+
+          <div className="text-right pl-3 border-l border-emerald-800">
+            <div className="text-[10px] text-amber-300 uppercase font-semibold">Indice Modèle</div>
             <div className="text-sm font-black text-amber-300">
               {prediction.confidence}%
             </div>
@@ -70,7 +141,7 @@ export function PredictionHero({
         {/* Left: VIP Featured Number with golden radar styling */}
         <div className="lg:col-span-4 flex flex-col items-center justify-center text-center p-4 rounded-xl bg-black/40 border border-amber-500/20 relative">
           <div className="text-[11px] font-bold text-amber-400 uppercase tracking-widest mb-1 flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5" /> Numéro Mis en Avant (VIP)
+            <Sparkles className="w-3.5 h-3.5" /> Numéro Plein Ciblé (VIP)
           </div>
 
           <div className="relative my-2 flex items-center justify-center">
@@ -124,23 +195,23 @@ export function PredictionHero({
 
         {/* Middle: Secondary coverage numbers + Secteurs & Chances Simples */}
         <div className="lg:col-span-5 flex flex-col justify-between space-y-4">
-          {/* Secondary Cover Numbers */}
+          {/* Secondary Cover Numbers (Top 6) */}
           <div>
             <div className="text-xs font-bold text-emerald-200 uppercase tracking-wide mb-2 flex items-center justify-between">
               <span className="flex items-center gap-1">
                 <Target className="w-3.5 h-3.5 text-amber-400" />
-                Numéros de Couverture (Top 4)
+                Numéros de Couverture Clés (Top 6)
               </span>
               <span className="text-[11px] text-amber-400/80 font-normal">Sécurisation du coup</span>
             </div>
 
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-6 gap-1.5">
               {prediction.coverageNumbers.map((num) => {
                 const info = ROULETTE_NUMBERS[num];
                 return (
                   <div
                     key={num}
-                    className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all ${
+                    className={`flex flex-col items-center justify-center p-1.5 rounded-xl border text-center transition-all ${
                       info.color === 'red'
                         ? 'bg-rose-950/60 border-rose-700/50 text-rose-200 hover:border-rose-400'
                         : info.color === 'black'
@@ -148,9 +219,9 @@ export function PredictionHero({
                         : 'bg-emerald-950/80 border-emerald-600/50 text-emerald-200 hover:border-emerald-400'
                     }`}
                   >
-                    <span className="text-xl font-black">{num}</span>
-                    <span className="text-[10px] font-medium opacity-80 uppercase">
-                      {info.color === 'red' ? 'Rouge' : info.color === 'black' ? 'Noir' : 'Vert'}
+                    <span className="text-lg font-black">{num}</span>
+                    <span className="text-[9px] font-medium opacity-80 uppercase">
+                      {info.color === 'red' ? 'R' : info.color === 'black' ? 'N' : 'V'}
                     </span>
                   </div>
                 );
@@ -191,32 +262,41 @@ export function PredictionHero({
             </div>
 
             <div className="p-2.5 rounded-xl bg-black/30 border border-emerald-800/40">
-              <span className="text-[10px] uppercase font-semibold text-emerald-400 block mb-0.5">Douzaine</span>
+              <span className="text-[10px] uppercase font-semibold text-emerald-400 block mb-0.5">Douzaines Clés</span>
               <span className="font-bold text-amber-300 flex items-center gap-1">
                 <Layers className="w-3 h-3 text-amber-400" />
-                {prediction.suggestedDozen}e Douzaine
+                {prediction.suggestedDozen}e & {prediction.secondaryDozen}e (65%)
               </span>
             </div>
 
             <div className="p-2.5 rounded-xl bg-black/30 border border-emerald-800/40">
-              <span className="text-[10px] uppercase font-semibold text-emerald-400 block mb-0.5">Colonne</span>
+              <span className="text-[10px] uppercase font-semibold text-emerald-400 block mb-0.5">Colonnes</span>
               <span className="font-bold text-emerald-200">
-                Colonne {prediction.suggestedColumn}
+                Col {prediction.suggestedColumn} & Col {prediction.secondaryColumn}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Right: Rationale + Prominent Action Button */}
+        {/* Right: Rationale + Bankroll Advice + Action Button */}
         <div className="lg:col-span-3 flex flex-col justify-between space-y-3 h-full">
           {/* Statistical justification text */}
           <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-700/40 text-xs text-emerald-200 leading-relaxed">
             <div className="flex items-center gap-1 font-bold text-amber-400 text-[11px] mb-1">
-              <Activity className="w-3 h-3" /> Logique Statistique :
+              <Activity className="w-3 h-3" /> Analyse de Convergence :
             </div>
             <p className="text-emerald-100/90 text-[11px]">
               {prediction.rationale}
             </p>
+          </div>
+
+          {/* Bankroll / Bet sizing advice */}
+          <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-200 leading-tight flex items-start gap-2">
+            <Coins className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            <div>
+              <span className="font-bold text-amber-300">Gestion de Mise : </span>
+              {prediction.bankrollAdvice}
+            </div>
           </div>
 
           {/* User's primary action: Saisir le résultat suivant */}
@@ -230,7 +310,7 @@ export function PredictionHero({
 
           {/* Discreet label required by the user */}
           <div className="text-center text-[10px] text-emerald-300/60 italic">
-            « Analyse basée sur les résultats saisis »
+            « Analyse basée sur les résultats saisis • Jouez de manière responsable »
           </div>
         </div>
       </div>
